@@ -1,75 +1,69 @@
-'use client'
-
-import React from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+'use client';
 
 export default function HeroBanner() {
   return (
-    <div className="relative bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 text-white overflow-hidden">
-      {/* Decorative Globe */}
-      <div className="absolute right-0 top-0 w-96 h-96 opacity-10">
-        <svg viewBox="0 0 200 200" className="w-full h-full">
-          <circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" strokeWidth="1"/>
-          <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" strokeWidth="1"/>
-          <circle cx="100" cy="100" r="40" fill="none" stroke="currentColor" strokeWidth="1"/>
-          <line x1="20" y1="100" x2="180" y2="100" stroke="currentColor" strokeWidth="1"/>
-          <line x1="100" y1="20" x2="100" y2="180" stroke="currentColor" strokeWidth="1"/>
-        </svg>
-      </div>
-
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          {/* Left: Featured Players */}
-          <div className="flex-1 flex items-center space-x-4 mb-8 md:mb-0">
-            <PlayerPlaceholder position="left" />
-            <PlayerPlaceholder position="center" size="large" />
+    <div className="mb-10">
+      <div 
+        className="relative w-full h-[280px] rounded-xl overflow-hidden shadow-2xl"
+        style={{
+          background: 'linear-gradient(135deg, #0f2557 0%, #1e40af 30%, #3b82f6 70%, #1e40af 100%)'
+        }}
+      >
+        {/* Decoración de fondo - Globo terráqueo estilizado */}
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-30">
+          {/* Círculo principal */}
+          <div className="w-[450px] h-[450px] rounded-full border-[6px] border-white/30 absolute"></div>
+          {/* Líneas horizontales del globo */}
+          <div className="w-[450px] h-[450px] absolute">
+            <div className="absolute top-1/4 left-0 w-full h-[3px] bg-white/20"></div>
+            <div className="absolute top-1/2 left-0 w-full h-[3px] bg-white/25"></div>
+            <div className="absolute top-3/4 left-0 w-full h-[3px] bg-white/20"></div>
           </div>
-
-          {/* Center: Main Text */}
-          <div className="flex-1 text-center px-8">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4" 
-                style={{
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.3), -1px -1px 0 rgba(255,255,255,0.1), 1px -1px 0 rgba(255,255,255,0.1), -1px 1px 0 rgba(255,255,255,0.1), 1px 1px 0 rgba(255,255,255,0.1)'
-                }}>
-              LOS MEJORES<br />PARTIDOS DE HOY
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100">
-              Sigue en vivo todos los resultados
-            </p>
-          </div>
-
-          {/* Right: Featured Player */}
-          <div className="flex-1 flex justify-end items-center">
-            <PlayerPlaceholder position="right" />
+          {/* Líneas verticales del globo */}
+          <div className="w-[450px] h-[450px] absolute">
+            <div className="absolute left-1/4 top-0 h-full w-[3px] bg-white/20"></div>
+            <div className="absolute left-1/2 top-0 h-full w-[3px] bg-white/25"></div>
+            <div className="absolute left-3/4 top-0 h-full w-[3px] bg-white/20"></div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-12">
-          <path d="M0,0 C300,80 900,80 1200,0 L1200,120 L0,120 Z" fill="white" opacity="0.1"/>
-        </svg>
+        {/* Contenido del banner */}
+        <div className="relative h-full flex items-center justify-center px-6 md:px-12 z-10">
+          {/* Texto principal con borde */}
+          <div className="max-w-4xl">
+            <h2 className="text-white text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold uppercase tracking-wide text-center border-4 border-white px-6 md:px-10 py-4 md:py-6 shadow-2xl backdrop-blur-sm bg-black/10">
+              Consulta los jugadores más valiosos del mundo
+            </h2>
+          </div>
+
+          {/* Imágenes de jugadores - Placeholders con mejor diseño */}
+          <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 hidden xl:flex gap-4 items-center">
+            {/* Jugador 1 */}
+            <div className="relative group">
+              <div className="w-24 h-28 bg-gradient-to-br from-blue-400/40 to-blue-600/40 rounded-xl backdrop-blur-sm border-2 border-white/40 shadow-xl transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+                <span className="text-5xl">⚽</span>
+              </div>
+            </div>
+            
+            {/* Jugador 2 - Central (más grande) */}
+            <div className="relative group">
+              <div className="w-28 h-32 bg-gradient-to-br from-blue-500/50 to-blue-700/50 rounded-xl backdrop-blur-sm border-3 border-white/50 shadow-2xl transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+                <span className="text-6xl">🏆</span>
+              </div>
+            </div>
+            
+            {/* Jugador 3 */}
+            <div className="relative group">
+              <div className="w-24 h-28 bg-gradient-to-br from-blue-400/40 to-blue-600/40 rounded-xl backdrop-blur-sm border-2 border-white/40 shadow-xl transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+                <span className="text-5xl">⭐</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Efecto de brillo animado */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-700"></div>
       </div>
     </div>
-  )
-}
-
-interface PlayerPlaceholderProps {
-  position: 'left' | 'center' | 'right'
-  size?: 'normal' | 'large'
-}
-
-function PlayerPlaceholder({ position, size = 'normal' }: PlayerPlaceholderProps) {
-  const sizeClass = size === 'large' ? 'w-32 h-32 md:w-40 md:h-40' : 'w-24 h-24 md:w-28 md:h-28'
-  
-  return (
-    <div className={`${sizeClass} rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center shadow-xl`}>
-      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/20 flex items-center justify-center">
-        <svg className="w-8 h-8 md:w-10 md:h-10 text-white/50" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-        </svg>
-      </div>
-    </div>
-  )
+  );
 }
