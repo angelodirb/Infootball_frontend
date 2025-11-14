@@ -60,6 +60,7 @@ export default function Navbar() {
                     <Settings size={18} />
                     <span>Configuración</span>
                   </Link>
+                  
                   <button 
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-800 rounded-lg transition-colors text-red-400"
@@ -131,6 +132,16 @@ export default function Navbar() {
               }`}
             >
               Partidos
+            </Link>
+
+            <Link
+              href="/fichajes"
+              onClick={() => setActiveTab('fichajes')}
+              className={`px-8 lg:px-12 py-5 text-sm font-medium uppercase tracking-wide transition-colors hover:bg-gray-900 ${
+                activeTab === 'fichajes' ? 'bg-gray-900 text-white' : 'text-gray-300'
+              }`}
+            >
+              Fichajes
             </Link>
           </div>
         </div>

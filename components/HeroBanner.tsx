@@ -35,30 +35,6 @@ export default function HeroBanner() {
               Consulta los jugadores más valiosos del mundo
             </h2>
           </div>
-
-          {/* Imágenes de jugadores - Placeholders con mejor diseño */}
-          <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 hidden xl:flex gap-4 items-center">
-            {/* Jugador 1 */}
-            <div className="relative group">
-              <div className="w-24 h-28 bg-gradient-to-br from-blue-400/40 to-blue-600/40 rounded-xl backdrop-blur-sm border-2 border-white/40 shadow-xl transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
-                <span className="text-5xl">⚽</span>
-              </div>
-            </div>
-            
-            {/* Jugador 2 - Central (más grande) */}
-            <div className="relative group">
-              <div className="w-28 h-32 bg-gradient-to-br from-blue-500/50 to-blue-700/50 rounded-xl backdrop-blur-sm border-3 border-white/50 shadow-2xl transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
-                <span className="text-6xl">🏆</span>
-              </div>
-            </div>
-            
-            {/* Jugador 3 */}
-            <div className="relative group">
-              <div className="w-24 h-28 bg-gradient-to-br from-blue-400/40 to-blue-600/40 rounded-xl backdrop-blur-sm border-2 border-white/40 shadow-xl transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
-                <span className="text-5xl">⭐</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Efecto de brillo animado */}

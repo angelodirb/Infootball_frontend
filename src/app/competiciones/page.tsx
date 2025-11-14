@@ -2,15 +2,43 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
-// Datos de ejemplo de competiciones
-const competitionsData = [
+interface Competition {
+  id: number;
+  name: string;
+  country: string;
+  type: string;
+  logo: string;
+  logoImage: string;
+  backgroundImage: string;
+  season: string;
+  teams: number;
+  matchesPlayed: number;
+  matchesRemaining: number;
+  leader: string;
+  topScorer: string;
+  featured: boolean;
+  color: string;
+}
+
+interface CompetitionLogoProps {
+  logoImage: string;
+  fallbackLogo: string;
+  name: string;
+  size?: "small" | "medium" | "large";
+}
+
+// Datos de ejemplo de competiciones con imágenes reales Y de fondo
+const competitionsData: Competition[] = [
   {
     id: 1,
     name: "Premier League",
     country: "Inglaterra",
     type: "Liga",
-    logo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿",
+    logo: "",
+    logoImage: "/images/competiciones/PremierLeague.png",
+    backgroundImage: "/images/competiciones/Inglaterra.png",
     season: "2024/25",
     teams: 20,
     matchesPlayed: 285,
@@ -25,7 +53,9 @@ const competitionsData = [
     name: "La Liga",
     country: "España",
     type: "Liga",
-    logo: "🇪🇸",
+    logo: "",
+    logoImage: "/images/competiciones/LaLiga.png",
+    backgroundImage: "/images/competiciones/Espana.png",
     season: "2024/25",
     teams: 20,
     matchesPlayed: 278,
@@ -40,7 +70,9 @@ const competitionsData = [
     name: "Serie A",
     country: "Italia",
     type: "Liga",
-    logo: "🇮🇹",
+    logo: "",
+    logoImage: "/images/competiciones/SERIE_A.png",
+    backgroundImage: "/images/competiciones/Italia.png",
     season: "2024/25",
     teams: 20,
     matchesPlayed: 270,
@@ -56,6 +88,8 @@ const competitionsData = [
     country: "Alemania",
     type: "Liga",
     logo: "🇩🇪",
+    logoImage: "/images/competiciones/Bundesliga.png",
+    backgroundImage: "/images/competiciones/Alemania.png",
     season: "2024/25",
     teams: 18,
     matchesPlayed: 245,
@@ -71,6 +105,8 @@ const competitionsData = [
     country: "Francia",
     type: "Liga",
     logo: "🇫🇷",
+    logoImage: "/images/competiciones/Ligue1.png",
+    backgroundImage: "/images/competiciones/Francia.png",
     season: "2024/25",
     teams: 18,
     matchesPlayed: 240,
@@ -85,7 +121,9 @@ const competitionsData = [
     name: "UEFA Champions League",
     country: "Europa",
     type: "Copa",
-    logo: "⭐",
+    logo: "",
+    logoImage: "/images/competiciones/CH-logo.jpg",
+    backgroundImage: "/images/competiciones/uefa-champions.avif",
     season: "2024/25",
     teams: 32,
     matchesPlayed: 89,
@@ -100,7 +138,9 @@ const competitionsData = [
     name: "Copa Libertadores",
     country: "Sudamérica",
     type: "Copa",
-    logo: "🏆",
+    logo: "",
+    logoImage: "/images/competiciones/Copa_Libertadores.png",
+    backgroundImage: "/images/competiciones/FondoLibertadores.avif",
     season: "2025",
     teams: 32,
     matchesPlayed: 45,
@@ -115,7 +155,9 @@ const competitionsData = [
     name: "Copa América",
     country: "Sudamérica",
     type: "Selecciones",
-    logo: "🌎",
+    logo: "",
+    logoImage: "/images/competiciones/confederacion-sudamerican.png",
+    backgroundImage: "/images/competiciones/FondoCopaAmerica.jpeg",
     season: "2025",
     teams: 16,
     matchesPlayed: 0,
@@ -131,6 +173,8 @@ const competitionsData = [
     country: "Estados Unidos",
     type: "Liga",
     logo: "🇺🇸",
+    logoImage: "/images/competiciones/MLS.png",
+    backgroundImage: "/images/competiciones/descarga.png",
     season: "2025",
     teams: 29,
     matchesPlayed: 156,
@@ -142,12 +186,51 @@ const competitionsData = [
   }
 ];
 
-const competitionTypes = [
+interface CompetitionType {
+  name: string;
+  icon: string;
+}
+
+const competitionTypes: CompetitionType[] = [
   { name: "Todas", icon: "🌍" },
   { name: "Liga", icon: "🏆" },
   { name: "Copa", icon: "🏅" },
   { name: "Selecciones", icon: "🌎" }
 ];
+
+// Componente para mostrar el logo (imagen o emoji fallback)
+function CompetitionLogo({ 
+  logoImage, 
+  fallbackLogo, 
+  name, 
+  size = "medium" 
+}: CompetitionLogoProps) {
+  const sizeClasses: Record<string, string> = {
+    small: "w-12 h-12",
+    medium: "w-24 h-24",
+    large: "w-32 h-32"
+  };
+
+  return (
+    <div className={`${sizeClasses[size]} relative flex items-center justify-center`}>
+      <Image
+        src={logoImage}
+        alt={name}
+        fill
+        className="object-contain"
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = 'none';
+        }}
+      />
+      {/* Fallback emoji si la imagen no carga */}
+      <div className={`${sizeClasses[size]} flex items-center justify-center text-center`}>
+        <span className={`${size === 'large' ? 'text-7xl' : size === 'medium' ? 'text-5xl' : 'text-3xl'}`}>
+          {fallbackLogo}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export default function CompeticionesPage() {
   const [selectedType, setSelectedType] = React.useState("Todas");
@@ -193,18 +276,25 @@ export default function CompeticionesPage() {
                 >
                   {/* Card Container */}
                   <div className="relative h-[350px] overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 shadow-2xl">
-                    {/* Background decorativo */}
+                    {/* Background decorativo con imagen + gradiente */}
                     <div className="absolute inset-0">
-                      <div className={`w-full h-full bg-gradient-to-br ${comp.color} opacity-20`}></div>
+                      <div 
+                        className={`w-full h-full bg-gradient-to-br ${comp.color} bg-cover bg-center`}
+                        style={{
+                          backgroundImage: `url(${comp.backgroundImage})`,
+                          backgroundBlendMode: 'overlay',
+                          opacity: 0.4
+                        } as React.CSSProperties}
+                      ></div>
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(34,197,94,0.1),transparent)]"></div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
                     </div>
                     
                     {/* Logo grande de la competición */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                      <span className="text-[15rem] transform group-hover:scale-110 transition-transform duration-500">
+                      <div className="text-[15rem] transform group-hover:scale-110 transition-transform duration-500">
                         {comp.logo}
-                      </span>
+                      </div>
                     </div>
                     
                     {/* Badge de tipo */}
@@ -226,7 +316,14 @@ export default function CompeticionesPage() {
                     <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
                       {/* Logo y país */}
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="text-5xl">{comp.logo}</div>
+                        <div className="w-16 h-16 bg-gray-800/50 rounded-lg flex items-center justify-center">
+                          <CompetitionLogo 
+                            logoImage={comp.logoImage}
+                            fallbackLogo={comp.logo}
+                            name={comp.name}
+                            size="small"
+                          />
+                        </div>
                         <div>
                           <h2 className="text-2xl md:text-3xl font-black leading-tight transform transition-all duration-300 group-hover:text-green-400">
                             {comp.name}
@@ -316,14 +413,24 @@ export default function CompeticionesPage() {
                   
                   {/* Header con logo */}
                   <div className="relative h-40 overflow-hidden">
-                    <div className={`w-full h-full bg-gradient-to-br ${comp.color} opacity-30 group-hover:opacity-40 transition-opacity duration-500`}></div>
+                    <div 
+                      className={`w-full h-full bg-gradient-to-br ${comp.color} bg-cover bg-center`}
+                      style={{
+                        backgroundImage: `url(${comp.backgroundImage})`,
+                        backgroundBlendMode: 'overlay',
+                        opacity: 0.4
+                      } as React.CSSProperties}
+                    ></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                     
                     {/* Logo */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-7xl group-hover:scale-110 transition-transform duration-500">
-                        {comp.logo}
-                      </span>
+                      <CompetitionLogo 
+                        logoImage={comp.logoImage}
+                        fallbackLogo={comp.logo}
+                        name={comp.name}
+                        size="medium"
+                      />
                     </div>
                     
                     {/* Badge de tipo */}

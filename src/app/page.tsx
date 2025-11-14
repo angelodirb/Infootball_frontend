@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import HeroBanner from '@/components/HeroBanner';
 import FeaturedMatches from '@/components/FeaturedMatches';
+import FeaturedTransfers from '@/components/FeaturedTransfers'; 
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
