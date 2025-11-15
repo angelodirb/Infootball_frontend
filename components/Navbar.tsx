@@ -1,49 +1,49 @@
+// components/Navbar.tsx
 'use client';
 
 import Link from 'next/link';
 import { useState } from 'react';
 import { User, Settings, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const [activeTab, setActiveTab] = useState('noticias');
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Simular estado de autenticación
   const [showUserMenu, setShowUserMenu] = useState(false);
+  
 
-  // Datos de usuario simulados
-  const userData = {
-    name: 'Juan Pérez',
-    email: 'juan@example.com',
-    avatar: 'JP' // Iniciales para el avatar
-  };
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
     setShowUserMenu(false);
-    // Aquí iría la lógica real de logout
+    logout(); 
   };
 
   return (
     <nav className="bg-black text-white shadow-lg sticky top-0 z-50">
-      {/* Top Bar con iconos de usuario y configuración */}
       <div className="container mx-auto px-4 py-3 flex justify-end items-center gap-4">
-        {isAuthenticated ? (
+        
+        {user ? (
           <div className="relative">
             <button 
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity p-2 hover:bg-gray-800 rounded-lg"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center font-bold text-sm text-black">
-                {userData.avatar}
+
+                {user.firstName[0]}{user.lastName[0]}
               </div>
-              <span className="text-sm font-medium">{userData.name}</span>
+
+              <span className="text-sm font-medium">
+                {user.firstName} {user.lastName}
+              </span>
             </button>
             
-            {/* Menú desplegable de usuario */}
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-gray-900 rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
                 <div className="p-4 border-b border-gray-800">
-                  <p className="font-semibold">{userData.name}</p>
-                  <p className="text-sm text-gray-400">{userData.email}</p>
+
+                  <p className="font-semibold">{user.firstName} {user.lastName}</p>
+                  <p className="text-sm text-gray-400">{user.email}</p>
                 </div>
                 <div className="p-2">
                   <Link 
