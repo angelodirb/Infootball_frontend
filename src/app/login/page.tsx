@@ -1,28 +1,39 @@
+/*login/ page.tsx*/ 
+
 'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth(); 
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Aquí iría la lógica de autenticación con tu backend NestJS
-    console.log('Login attempt:', { email, password, rememberMe });
-    
-    // Simulamos una llamada a la API
-    setTimeout(() => {
+    try {
+      await login(email, password);  // ← Llamar al login del contexto
+      router.push('/');  // Redirigir al home
+    } catch (err: any) {
+      setError(err.message || 'Error al iniciar sesión');
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
+
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black text-white flex items-center justify-center px-4">
@@ -42,13 +53,20 @@ export default function LoginPage() {
         {/* Card del formulario */}
         <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl p-8 border border-gray-800">
           {/* Header */}
-          <div className="text-center mb-8">
+            <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full mb-4 shadow-lg shadow-green-500/50">
               <User size={32} className="text-black" />
             </div>
             <h2 className="text-3xl font-bold mb-2">Bienvenido de vuelta</h2>
             <p className="text-gray-400">Ingresa a tu cuenta para continuar</p>
           </div>
+
+          {/* Mensaje de error */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-xl">
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </div>
+          )}
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-5">

@@ -1,11 +1,11 @@
-// ✅ API CLIENT COMPLETO
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // Helper para manejar errores
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'API Error');
+    throw new Error(error.message || 'Error en la petición');
   }
   return response.json();
 };
@@ -48,17 +48,21 @@ export const transfersApi = {
 
 // AUTH
 export const authApi = {
-  login: (email: string, password: string) =>
-    fetch(`${API_URL}/auth/login`, {
+  login: async (email: string, password: string) => {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
-    }).then(handleResponse),
-  
-  register: (data: any) =>
-    fetch(`${API_URL}/auth/register`, {
+    });
+    return handleResponse(response);
+  },
+
+  register: async (data: { firstName: string; lastName: string; email: string; password: string }) => {
+    const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-    }).then(handleResponse),
+    });
+    return handleResponse(response);
+  },
 };

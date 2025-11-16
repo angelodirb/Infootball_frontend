@@ -1,3 +1,4 @@
+/*HeroBanner*/
 'use client';
 
 export default function HeroBanner() {
