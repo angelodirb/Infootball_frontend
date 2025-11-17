@@ -4,6 +4,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User, Shield, CheckCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { authApi } from '@/lib/api';
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +46,7 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validar que las contraseñas coincidan
     if (formData.password !== formData.confirmPassword) {
       alert('Las contraseñas no coinciden');
       return;
@@ -51,13 +54,40 @@ export default function SignUpPage() {
     
     setIsLoading(true);
     
-    // Aquí iría la lógica de registro con tu backend NestJS
-    console.log('SignUp attempt:', formData);
-    
-    // Simulamos una llamada a la API
-    setTimeout(() => {
+    try {
+      // ✅ LLAMADA REAL AL BACKEND usando authApi
+      const response = await authApi.register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      });
+
+      console.log('Usuario registrado exitosamente:', response);
+      
+
+      localStorage.setItem('token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // MOSTRAR MENSAJE DE ÉXITO
+      alert(`¡Bienvenido ${response.user.firstName}! Te has registrado exitosamente.`);
+      
+      //EDIRIGIR A LA PÁGINA PRINCIPAL
+      window.location.href = '/'; // O usar router.push('/') si importas useRouter
+      
+    } catch (error: any) {
+      console.error('Error en el registro:', error);
+      
+      //MOSTRAR ERROR AL USUARIO
+      if (error.message.includes('email ya está registrado')) {
+        alert('Este email ya está registrado. Intenta con otro email o inicia sesión.');
+      } else {
+        alert('Error al registrar usuario: ' + error.message);
+      }
+      
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const getPasswordStrengthColor = () => {

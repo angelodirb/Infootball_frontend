@@ -1,5 +1,6 @@
+// Frontend - lib/api.ts - VERSION CORREGIDA
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'; 
 
 // Helper para manejar errores
 const handleResponse = async (response: Response) => {
@@ -20,10 +21,10 @@ const getAuthHeaders = () => {
 
 // MATCHES
 export const matchesApi = {
-  getAll: () => fetch(`${API_URL}/matches`, {headers: getAuthHeaders()}).then(handleResponse),
-  getById: (id: number) => fetch(`${API_URL}/matches/${id}`).then(handleResponse),
-  getByDate: (date: string) => fetch(`${API_URL}/matches?date=${date}`).then(handleResponse),
+  getByDate: (date: string) => fetch(`${API_URL}/matches/date?date=${date}`).then(handleResponse),
   getLive: () => fetch(`${API_URL}/matches/live`).then(handleResponse),
+  getAll: () => fetch(`${API_URL}/matches`).then(handleResponse),
+  testApi: () => fetch(`${API_URL}/matches/test-api`).then(handleResponse),
 };
 
 // COMPETITIONS
@@ -46,7 +47,7 @@ export const transfersApi = {
   getFeatured: () => fetch(`${API_URL}/transfers/featured`).then(handleResponse),
 };
 
-// AUTH
+// ✅ AUTH - ACTUALIZADO Y FUNCIONAL
 export const authApi = {
   login: async (email: string, password: string) => {
     const response = await fetch(`${API_URL}/auth/login`, {
