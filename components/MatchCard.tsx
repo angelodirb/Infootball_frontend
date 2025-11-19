@@ -2,19 +2,7 @@
 
 import React from 'react'
 import Image from 'next/image'
-
-export interface Match {
-  id: number
-  homeTeam: string
-  awayTeam: string
-  homeScore?: number
-  awayScore?: number
-  time: string
-  competition: string
-  status: 'scheduled' | 'live' | 'finished'
-  homeLogo?: string
-  awayLogo?: string
-}
+import { Match } from '../types/api-football'
 
 interface MatchCardProps {
   match: Match

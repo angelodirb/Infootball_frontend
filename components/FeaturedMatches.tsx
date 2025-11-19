@@ -1,80 +1,88 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import MatchCard, { Match } from './MatchCard'
+import React, { useState, useRef, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import MatchCard from './MatchCard'
+import { Match } from '../types/api-football'
+import { getFixturesByDate } from '../lib/api-football'
+
+// Generate dates for the next 7 days
+function generateDates(): { day: string; date: string; month: string; fullDate: string }[] {
+  const days = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB']
+  const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
+
+  const dates = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date()
+    d.setDate(d.getDate() + i)
+    dates.push({
+      day: days[d.getDay()],
+      date: d.getDate().toString(),
+      month: months[d.getMonth()],
+      fullDate: d.toISOString().split('T')[0],
+    })
+  }
+  return dates
+}
 
 export default function FeaturedMatches() {
   const [selectedDate, setSelectedDate] = useState(0)
+  const [matches, setMatches] = useState<Match[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const dates = [
-    { day: 'LUN', date: '28', month: 'OCT' },
-    { day: 'MAR', date: '29', month: 'OCT' },
-    { day: 'MIE', date: '30', month: 'OCT' },
-    { day: 'JUE', date: '31', month: 'OCT' },
-    { day: 'VIE', date: '1', month: 'NOV' },
-    { day: 'SAB', date: '2', month: 'NOV' },
-    { day: 'DOM', date: '3', month: 'NOV' },
-  ]
+  const dates = generateDates()
 
-  // Sample matches data
-  const matches: Match[] = [
-    {
-      id: 1,
-      homeTeam: 'Real Madrid',
-      awayTeam: 'Barcelona',
-      homeScore: 2,
-      awayScore: 1,
-      time: '45\' - Segundo tiempo',
-      competition: 'LaLiga',
-      status: 'live',
-    },
-    {
-      id: 2,
-      homeTeam: 'Manchester United',
-      awayTeam: 'Liverpool',
-      time: '20:00',
-      competition: 'Premier League',
-      status: 'scheduled',
-    },
-    {
-      id: 3,
-      homeTeam: 'Bayern Munich',
-      awayTeam: 'Dortmund',
-      homeScore: 3,
-      awayScore: 2,
-      time: 'Finalizado',
-      competition: 'Bundesliga',
-      status: 'finished',
-    },
-    {
-      id: 4,
-      homeTeam: 'PSG',
-      awayTeam: 'Marsella',
-      time: '21:45',
-      competition: 'Ligue 1',
-      status: 'scheduled',
-    },
-    {
-      id: 5,
-      homeTeam: 'Juventus',
-      awayTeam: 'Inter',
-      homeScore: 1,
-      awayScore: 1,
-      time: '60\' - Segundo tiempo',
-      competition: 'Serie A',
-      status: 'live',
-    },
-    {
-      id: 6,
-      homeTeam: 'Atletico Madrid',
-      awayTeam: 'Sevilla',
-      time: '18:30',
-      competition: 'LaLiga',
-      status: 'scheduled',
-    },
-  ]
+  useEffect(() => {
+    async function fetchMatches() {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const data = await getFixturesByDate(dates[selectedDate].fullDate)
+        setMatches(data)
+      } catch (err) {
+        console.error('Error fetching matches:', err)
+        setError('Error al cargar los partidos. Verifica tu API key.')
+        // Fallback to sample data if API fails
+        setMatches([
+          {
+            id: 1,
+            homeTeam: 'Real Madrid',
+            awayTeam: 'Barcelona',
+            homeScore: 2,
+            awayScore: 1,
+            time: '45\' - Segundo tiempo',
+            competition: 'LaLiga',
+            status: 'live',
+          },
+          {
+            id: 2,
+            homeTeam: 'Manchester United',
+            awayTeam: 'Liverpool',
+            time: '20:00',
+            competition: 'Premier League',
+            status: 'scheduled',
+          },
+          {
+            id: 3,
+            homeTeam: 'Bayern Munich',
+            awayTeam: 'Dortmund',
+            homeScore: 3,
+            awayScore: 2,
+            time: 'Finalizado',
+            competition: 'Bundesliga',
+            status: 'finished',
+          },
+        ])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchMatches()
+  }, [selectedDate])
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -133,19 +141,40 @@ export default function FeaturedMatches() {
         </div>
       </div>
 
-      {/* Matches Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {matches.map((match) => (
-          <MatchCard key={match.id} match={match} />
-        ))}
-      </div>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6">
+          {error}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+          <span className="ml-2 text-gray-500">Cargando partidos...</span>
+        </div>
+      ) : matches.length === 0 ? (
+        <div className="text-center py-20 text-gray-500">
+          No hay partidos programados para esta fecha
+        </div>
+      ) : (
+        /* Matches Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {matches.map((match) => (
+            <MatchCard key={match.id} match={match} />
+          ))}
+        </div>
+      )}
 
       {/* Load More Button */}
-      <div className="text-center mt-8">
-        <button className="bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg">
-          Ver más partidos
-        </button>
-      </div>
+      {!loading && matches.length > 0 && (
+        <div className="text-center mt-8">
+          <button className="bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors shadow-lg">
+            Ver más partidos
+          </button>
+        </div>
+      )}
     </div>
   )
 }
