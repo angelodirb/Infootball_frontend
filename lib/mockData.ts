@@ -1,4 +1,4 @@
-import { Match, Team, Competition } from '@/types';
+import { Match, Team, Competition } from '@/types/api-football.ts';
 
 // Equipos de ejemplo
 export const mockTeams: Team[] = [
