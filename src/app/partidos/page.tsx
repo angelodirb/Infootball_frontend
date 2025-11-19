@@ -1,162 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { matchesApi } from '../../../lib/api';
 
-// Datos de ejemplo de partidos
-const matchesData = {
-  live: [
-    {
-      id: 1,
-      competition: "Premier League",
-      competitionLogo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿",
-      home: "Arsenal",
-      homeLogo: "🔴",
-      away: "Manchester City",
-      awayLogo: "🔵",
-      homeScore: 2,
-      awayScore: 2,
-      time: "78'",
-      status: "live",
-      stadium: "Emirates Stadium",
-      events: [
-        { minute: 12, type: "goal", team: "home", player: "Saka" },
-        { minute: 34, type: "goal", team: "away", player: "Haaland" },
-        { minute: 56, type: "goal", team: "home", player: "Martinelli" },
-        { minute: 71, type: "goal", team: "away", player: "De Bruyne" },
-      ]
-    },
-    {
-      id: 2,
-      competition: "La Liga",
-      competitionLogo: "🇪🇸",
-      home: "Real Madrid",
-      homeLogo: "⚪",
-      away: "Barcelona",
-      awayLogo: "🔴🔵",
-      homeScore: 1,
-      awayScore: 0,
-      time: "45+2'",
-      status: "live",
-      stadium: "Santiago Bernabéu",
-      events: [
-        { minute: 23, type: "goal", team: "home", player: "Vinicius Jr" },
-      ]
-    }
-  ],
-  today: [
-    {
-      id: 3,
-      competition: "Premier League",
-      competitionLogo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿",
-      home: "Liverpool",
-      homeLogo: "🔴",
-      away: "Chelsea",
-      awayLogo: "🔵",
-      time: "17:30",
-      status: "upcoming",
-      stadium: "Anfield",
-      date: "Hoy"
-    },
-    {
-      id: 4,
-      competition: "Serie A",
-      competitionLogo: "🇮🇹",
-      home: "Inter de Milán",
-      homeLogo: "⚫🔵",
-      away: "AC Milan",
-      awayLogo: "🔴⚫",
-      time: "20:45",
-      status: "upcoming",
-      stadium: "San Siro",
-      date: "Hoy"
-    },
-    {
-      id: 5,
-      competition: "Bundesliga",
-      competitionLogo: "🇩🇪",
-      home: "Bayern Múnich",
-      homeLogo: "🔴",
-      away: "Borussia Dortmund",
-      awayLogo: "🟡⚫",
-      time: "18:30",
-      status: "upcoming",
-      stadium: "Allianz Arena",
-      date: "Hoy"
-    }
-  ],
-  upcoming: [
-    {
-      id: 6,
-      competition: "Champions League",
-      competitionLogo: "⭐",
-      home: "PSG",
-      homeLogo: "🔴🔵",
-      away: "Bayern Múnich",
-      awayLogo: "🔴",
-      time: "21:00",
-      status: "upcoming",
-      stadium: "Parc des Princes",
-      date: "Mañana"
-    },
-    {
-      id: 7,
-      competition: "Copa Libertadores",
-      competitionLogo: "🏆",
-      home: "Boca Juniors",
-      homeLogo: "🟡🔵",
-      away: "River Plate",
-      awayLogo: "🔴⚪",
-      time: "21:30",
-      status: "upcoming",
-      stadium: "La Bombonera",
-      date: "Mañana"
-    },
-    {
-      id: 8,
-      competition: "La Liga",
-      competitionLogo: "🇪🇸",
-      home: "Atlético Madrid",
-      homeLogo: "🔴⚪",
-      away: "Sevilla",
-      awayLogo: "⚪🔴",
-      time: "16:15",
-      status: "upcoming",
-      stadium: "Wanda Metropolitano",
-      date: "29 Oct"
-    }
-  ],
-  finished: [
-    {
-      id: 9,
-      competition: "Premier League",
-      competitionLogo: "🏴󐁧󐁢󐁥󐁮󐁧󐁿",
-      home: "Manchester United",
-      homeLogo: "🔴",
-      away: "Tottenham",
-      awayLogo: "⚪",
-      homeScore: 2,
-      awayScore: 3,
-      status: "finished",
-      stadium: "Old Trafford",
-      date: "Ayer"
-    },
-    {
-      id: 10,
-      competition: "Serie A",
-      competitionLogo: "🇮🇹",
-      home: "Juventus",
-      homeLogo: "⚫⚪",
-      away: "Napoli",
-      awayLogo: "🔵",
-      homeScore: 1,
-      awayScore: 1,
-      status: "finished",
-      stadium: "Allianz Stadium",
-      date: "Ayer"
-    }
-  ]
-};
+// Interfaces para los datos de la API
+interface Team {
+  id: number;
+  name: string;
+  shortName?: string;
+  logo?: string;
+}
+
+interface Competition {
+  id: number;
+  name: string;
+  logo?: string;
+}
+
+interface Match {
+  id: number;
+  matchDate: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  status: 'scheduled' | 'live' | 'halftime' | 'finished' | 'postponed' | 'cancelled';
+  homeTeam: Team;
+  awayTeam: Team;
+  competition: Competition;
+  venue?: string;
+  round?: string;
+}
+
+interface MatchesData {
+  live: Match[];
+  today: Match[];
+  upcoming: Match[];
+  finished: Match[];
+}
 
 const competitions = [
   { name: "Todos", icon: "🌍" },
@@ -168,18 +49,123 @@ const competitions = [
   { name: "Copa Libertadores", icon: "🏆" }
 ];
 
+// Helper para formatear hora del partido
+const formatMatchTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+};
+
+// Helper para formatear fecha
+const formatMatchDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (date.toDateString() === today.toDateString()) return 'Hoy';
+  if (date.toDateString() === tomorrow.toDateString()) return 'Mañana';
+  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+};
+
+// Helper para determinar si es hoy
+const isToday = (dateString: string) => {
+  const date = new Date(dateString);
+  const today = new Date();
+  return date.toDateString() === today.toDateString();
+};
+
 export default function PartidosPage() {
   const [selectedCompetition, setSelectedCompetition] = React.useState("Todos");
   const [activeTab, setActiveTab] = React.useState<'live' | 'today' | 'upcoming' | 'finished'>('live');
+  const [matchesData, setMatchesData] = useState<MatchesData>({
+    live: [],
+    today: [],
+    upcoming: [],
+    finished: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Obtener todos los partidos
+        const allMatches: Match[] = await matchesApi.getAll();
+
+        // Clasificar partidos por estado
+        const live: Match[] = [];
+        const today: Match[] = [];
+        const upcoming: Match[] = [];
+        const finished: Match[] = [];
+
+        allMatches.forEach((match: Match) => {
+          if (match.status === 'live' || match.status === 'halftime') {
+            live.push(match);
+          } else if (match.status === 'finished') {
+            finished.push(match);
+          } else if (match.status === 'scheduled') {
+            if (isToday(match.matchDate)) {
+              today.push(match);
+            } else {
+              upcoming.push(match);
+            }
+          }
+        });
+
+        setMatchesData({ live, today, upcoming, finished });
+      } catch (err) {
+        console.error('Error fetching matches:', err);
+        setError(err instanceof Error ? err.message : 'Error al cargar los partidos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando partidos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-2">Error al cargar partidos</h2>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-green-500 text-black px-6 py-2 rounded-lg font-bold hover:bg-green-400 transition"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black text-white">
-      
+
       {/* Hero Section */}
       <section className="relative pt-8 pb-12 px-4 overflow-hidden">
         {/* Efecto de fondo */}
         <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 via-transparent to-transparent"></div>
-        
+
         <div className="max-w-7xl mx-auto relative z-10">
           {/* Header */}
           <div className="mb-8">
@@ -202,75 +188,77 @@ export default function PartidosPage() {
                   <div className="group relative cursor-pointer transform transition-all duration-500 hover:scale-[1.02]">
                     {/* Card Container */}
                     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-950 shadow-2xl border-2 border-red-500/50">
-                      
+
                       {/* Badge LIVE pulsante */}
                       <div className="absolute top-6 left-6 z-10">
                         <span className="inline-flex items-center gap-2 bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-full shadow-lg shadow-red-500/50 animate-pulse">
                           <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                          EN VIVO
+                          {match.status === 'halftime' ? 'DESCANSO' : 'EN VIVO'}
                         </span>
                       </div>
 
                       {/* Tiempo del partido */}
                       <div className="absolute top-6 right-6 z-10">
                         <span className="bg-black/70 backdrop-blur-sm text-white text-xl font-bold px-4 py-2 rounded-full border border-gray-700">
-                          {match.time}
+                          {formatMatchTime(match.matchDate)}
                         </span>
                       </div>
 
                       {/* Background decorativo */}
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(239,68,68,0.1),transparent)]"></div>
-                      
+
                       {/* Contenido del partido */}
                       <div className="relative p-8">
                         {/* Competición */}
                         <div className="flex items-center gap-2 mb-6">
-                          <span className="text-2xl">{match.competitionLogo}</span>
-                          <span className="text-gray-400 text-sm font-semibold">{match.competition}</span>
+                          {match.competition.logo ? (
+                            <Image src={match.competition.logo} alt={match.competition.name} width={24} height={24} className="rounded" />
+                          ) : (
+                            <span className="text-2xl">⚽</span>
+                          )}
+                          <span className="text-gray-400 text-sm font-semibold">{match.competition.name}</span>
                         </div>
 
                         {/* Equipos y marcador */}
                         <div className="flex items-center justify-between mb-6">
                           {/* Local */}
                           <div className="flex-1 text-center">
-                            <div className="text-6xl mb-3">{match.homeLogo}</div>
-                            <div className="font-bold text-xl mb-2">{match.home}</div>
+                            {match.homeTeam.logo ? (
+                              <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={64} height={64} className="mx-auto mb-3" />
+                            ) : (
+                              <div className="text-6xl mb-3">🏠</div>
+                            )}
+                            <div className="font-bold text-xl mb-2">{match.homeTeam.shortName || match.homeTeam.name}</div>
                           </div>
-                          
+
                           {/* Marcador */}
                           <div className="mx-8">
                             <div className="bg-black/50 backdrop-blur-md rounded-2xl px-8 py-4 border-2 border-green-500/30">
                               <div className="text-5xl font-black text-center">
-                                <span className="text-green-400">{match.homeScore}</span>
+                                <span className="text-green-400">{match.homeScore ?? 0}</span>
                                 <span className="text-gray-600 mx-3">-</span>
-                                <span className="text-green-400">{match.awayScore}</span>
+                                <span className="text-green-400">{match.awayScore ?? 0}</span>
                               </div>
                             </div>
                           </div>
-                          
+
                           {/* Visitante */}
                           <div className="flex-1 text-center">
-                            <div className="text-6xl mb-3">{match.awayLogo}</div>
-                            <div className="font-bold text-xl mb-2">{match.away}</div>
+                            {match.awayTeam.logo ? (
+                              <Image src={match.awayTeam.logo} alt={match.awayTeam.name} width={64} height={64} className="mx-auto mb-3" />
+                            ) : (
+                              <div className="text-6xl mb-3">✈️</div>
+                            )}
+                            <div className="font-bold text-xl mb-2">{match.awayTeam.shortName || match.awayTeam.name}</div>
                           </div>
                         </div>
 
                         {/* Estadio */}
-                        <div className="text-center pt-4 border-t border-gray-800">
-                          <span className="text-sm text-gray-400">🏟️ {match.stadium}</span>
-                        </div>
-
-                        {/* Últimos eventos */}
-                        <div className="mt-4 space-y-2">
-                          {match.events.slice(-2).reverse().map((event, index) => (
-                            <div key={index} className="bg-gray-800/50 rounded-lg p-2 text-sm flex items-center gap-2">
-                              <span className="text-green-400 font-bold">{event.minute}'</span>
-                              <span>{event.type === 'goal' ? '⚽' : '🟨'}</span>
-                              <span className="text-gray-300">{event.player}</span>
-                              <span className="text-gray-600">({event.team === 'home' ? match.home : match.away})</span>
-                            </div>
-                          ))}
-                        </div>
+                        {match.venue && (
+                          <div className="text-center pt-4 border-t border-gray-800">
+                            <span className="text-sm text-gray-400">🏟️ {match.venue}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Borde brillante */}
@@ -352,171 +340,235 @@ export default function PartidosPage() {
           {/* Partidos del día */}
           {activeTab === 'today' && (
             <div className="space-y-4">
-              {matchesData.today.map((match) => (
-                <Link href={`/partidos/${match.id}`} key={match.id}>
-                  <div className="group bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-6 border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10">
-                    
-                    <div className="flex flex-col md:flex-row md:items-center gap-6">
-                      {/* Competición y hora */}
-                      <div className="flex items-center gap-4 md:w-48">
-                        <span className="text-3xl">{match.competitionLogo}</span>
-                        <div>
-                          <div className="text-sm text-gray-400">{match.competition}</div>
-                          <div className="text-2xl font-bold text-green-400">{match.time}</div>
-                        </div>
-                      </div>
+              {matchesData.today.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">📅</div>
+                  <h3 className="text-2xl font-bold mb-2">No hay partidos hoy</h3>
+                  <p className="text-gray-400">Revisa los próximos encuentros</p>
+                </div>
+              ) : (
+                matchesData.today.map((match) => (
+                  <Link href={`/partidos/${match.id}`} key={match.id}>
+                    <div className="group bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-6 border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10">
 
-                      {/* Equipos */}
-                      <div className="flex-1 flex items-center justify-between">
-                        {/* Local */}
-                        <div className="flex items-center gap-3 flex-1">
-                          <span className="text-4xl">{match.homeLogo}</span>
-                          <span className="font-bold text-lg">{match.home}</span>
-                        </div>
-                        
-                        {/* VS */}
-                        <div className="mx-6">
-                          <div className="bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center font-black text-gray-400">
-                            VS
+                      <div className="flex flex-col md:flex-row md:items-center gap-6">
+                        {/* Competición y hora */}
+                        <div className="flex items-center gap-4 md:w-48">
+                          {match.competition.logo ? (
+                            <Image src={match.competition.logo} alt={match.competition.name} width={32} height={32} className="rounded" />
+                          ) : (
+                            <span className="text-3xl">⚽</span>
+                          )}
+                          <div>
+                            <div className="text-sm text-gray-400">{match.competition.name}</div>
+                            <div className="text-2xl font-bold text-green-400">{formatMatchTime(match.matchDate)}</div>
                           </div>
                         </div>
-                        
-                        {/* Visitante */}
-                        <div className="flex items-center gap-3 flex-1 justify-end">
-                          <span className="font-bold text-lg text-right">{match.away}</span>
-                          <span className="text-4xl">{match.awayLogo}</span>
+
+                        {/* Equipos */}
+                        <div className="flex-1 flex items-center justify-between">
+                          {/* Local */}
+                          <div className="flex items-center gap-3 flex-1">
+                            {match.homeTeam.logo ? (
+                              <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={40} height={40} />
+                            ) : (
+                              <span className="text-4xl">🏠</span>
+                            )}
+                            <span className="font-bold text-lg">{match.homeTeam.shortName || match.homeTeam.name}</span>
+                          </div>
+
+                          {/* VS */}
+                          <div className="mx-6">
+                            <div className="bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center font-black text-gray-400">
+                              VS
+                            </div>
+                          </div>
+
+                          {/* Visitante */}
+                          <div className="flex items-center gap-3 flex-1 justify-end">
+                            <span className="font-bold text-lg text-right">{match.awayTeam.shortName || match.awayTeam.name}</span>
+                            {match.awayTeam.logo ? (
+                              <Image src={match.awayTeam.logo} alt={match.awayTeam.name} width={40} height={40} />
+                            ) : (
+                              <span className="text-4xl">✈️</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Flecha */}
+                        <div className="text-green-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-2xl">▶</span>
                         </div>
                       </div>
 
-                      {/* Flecha */}
-                      <div className="text-green-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-2xl">▶</span>
-                      </div>
+                      {/* Estadio */}
+                      {match.venue && (
+                        <div className="mt-4 pt-4 border-t border-gray-800 text-sm text-gray-400">
+                          🏟️ {match.venue}
+                        </div>
+                      )}
                     </div>
-
-                    {/* Estadio */}
-                    <div className="mt-4 pt-4 border-t border-gray-800 text-sm text-gray-400">
-                      🏟️ {match.stadium}
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              )}
             </div>
           )}
 
           {/* Próximos partidos */}
           {activeTab === 'upcoming' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {matchesData.upcoming.map((match) => (
-                <Link href={`/partidos/${match.id}`} key={match.id}>
-                  <div className="group h-full bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl overflow-hidden border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10">
-                    
-                    {/* Header */}
-                    <div className="bg-gray-800/50 p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{match.competitionLogo}</span>
-                        <span className="text-sm font-semibold text-gray-300">{match.competition}</span>
-                      </div>
-                      <span className="text-xs bg-gray-700 px-3 py-1 rounded-full">{match.date}</span>
-                    </div>
+              {matchesData.upcoming.length === 0 ? (
+                <div className="col-span-2 text-center py-12">
+                  <div className="text-6xl mb-4">⏰</div>
+                  <h3 className="text-2xl font-bold mb-2">No hay próximos partidos</h3>
+                  <p className="text-gray-400">Revisa más tarde</p>
+                </div>
+              ) : (
+                matchesData.upcoming.map((match) => (
+                  <Link href={`/partidos/${match.id}`} key={match.id}>
+                    <div className="group h-full bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl overflow-hidden border border-gray-800 hover:border-green-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/10">
 
-                    {/* Contenido */}
-                    <div className="p-6">
-                      {/* Equipos */}
-                      <div className="space-y-4 mb-6">
-                        {/* Local */}
-                        <div className="flex items-center gap-3">
-                          <span className="text-4xl">{match.homeLogo}</span>
-                          <span className="font-bold text-lg">{match.home}</span>
+                      {/* Header */}
+                      <div className="bg-gray-800/50 p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {match.competition.logo ? (
+                            <Image src={match.competition.logo} alt={match.competition.name} width={20} height={20} className="rounded" />
+                          ) : (
+                            <span className="text-xl">⚽</span>
+                          )}
+                          <span className="text-sm font-semibold text-gray-300">{match.competition.name}</span>
                         </div>
-                        
-                        {/* VS */}
-                        <div className="flex items-center gap-2 pl-2">
-                          <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center text-xs font-bold">
-                            VS
+                        <span className="text-xs bg-gray-700 px-3 py-1 rounded-full">{formatMatchDate(match.matchDate)}</span>
+                      </div>
+
+                      {/* Contenido */}
+                      <div className="p-6">
+                        {/* Equipos */}
+                        <div className="space-y-4 mb-6">
+                          {/* Local */}
+                          <div className="flex items-center gap-3">
+                            {match.homeTeam.logo ? (
+                              <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={40} height={40} />
+                            ) : (
+                              <span className="text-4xl">🏠</span>
+                            )}
+                            <span className="font-bold text-lg">{match.homeTeam.shortName || match.homeTeam.name}</span>
                           </div>
-                          <div className="text-2xl font-bold text-green-400">{match.time}</div>
+
+                          {/* VS */}
+                          <div className="flex items-center gap-2 pl-2">
+                            <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center text-xs font-bold">
+                              VS
+                            </div>
+                            <div className="text-2xl font-bold text-green-400">{formatMatchTime(match.matchDate)}</div>
+                          </div>
+
+                          {/* Visitante */}
+                          <div className="flex items-center gap-3">
+                            {match.awayTeam.logo ? (
+                              <Image src={match.awayTeam.logo} alt={match.awayTeam.name} width={40} height={40} />
+                            ) : (
+                              <span className="text-4xl">✈️</span>
+                            )}
+                            <span className="font-bold text-lg">{match.awayTeam.shortName || match.awayTeam.name}</span>
+                          </div>
                         </div>
-                        
-                        {/* Visitante */}
-                        <div className="flex items-center gap-3">
-                          <span className="text-4xl">{match.awayLogo}</span>
-                          <span className="font-bold text-lg">{match.away}</span>
-                        </div>
+
+                        {/* Estadio */}
+                        {match.venue && (
+                          <div className="text-sm text-gray-400 pt-4 border-t border-gray-800">
+                            🏟️ {match.venue}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Estadio */}
-                      <div className="text-sm text-gray-400 pt-4 border-t border-gray-800">
-                        🏟️ {match.stadium}
-                      </div>
+                      {/* Borde inferior */}
+                      <div className="h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
-
-                    {/* Borde inferior */}
-                    <div className="h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              )}
             </div>
           )}
 
           {/* Partidos finalizados */}
           {activeTab === 'finished' && (
             <div className="space-y-4">
-              {matchesData.finished.map((match) => (
-                <Link href={`/partidos/${match.id}`} key={match.id}>
-                  <div className="group bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-6 border border-gray-800 hover:border-green-500/50 transition-all duration-300">
-                    
-                    <div className="flex flex-col md:flex-row md:items-center gap-6">
-                      {/* Competición */}
-                      <div className="flex items-center gap-4 md:w-48">
-                        <span className="text-3xl">{match.competitionLogo}</span>
-                        <div>
-                          <div className="text-sm text-gray-400">{match.competition}</div>
-                          <div className="text-xs bg-gray-700 px-2 py-1 rounded">{match.date}</div>
-                        </div>
-                      </div>
+              {matchesData.finished.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">✅</div>
+                  <h3 className="text-2xl font-bold mb-2">No hay partidos finalizados</h3>
+                  <p className="text-gray-400">Los resultados aparecerán aquí</p>
+                </div>
+              ) : (
+                matchesData.finished.map((match) => (
+                  <Link href={`/partidos/${match.id}`} key={match.id}>
+                    <div className="group bg-gradient-to-br from-gray-900 to-gray-950 rounded-xl p-6 border border-gray-800 hover:border-green-500/50 transition-all duration-300">
 
-                      {/* Equipos y resultado */}
-                      <div className="flex-1 flex items-center justify-between">
-                        {/* Local */}
-                        <div className="flex items-center gap-3 flex-1">
-                          <span className="text-4xl">{match.homeLogo}</span>
-                          <span className="font-bold text-lg">{match.home}</span>
-                        </div>
-                        
-                        {/* Marcador */}
-                        <div className="mx-6 bg-gray-800 rounded-lg px-6 py-3">
-                          <div className="text-3xl font-black">
-                            <span>{match.homeScore}</span>
-                            <span className="text-gray-600 mx-2">-</span>
-                            <span>{match.awayScore}</span>
+                      <div className="flex flex-col md:flex-row md:items-center gap-6">
+                        {/* Competición */}
+                        <div className="flex items-center gap-4 md:w-48">
+                          {match.competition.logo ? (
+                            <Image src={match.competition.logo} alt={match.competition.name} width={32} height={32} className="rounded" />
+                          ) : (
+                            <span className="text-3xl">⚽</span>
+                          )}
+                          <div>
+                            <div className="text-sm text-gray-400">{match.competition.name}</div>
+                            <div className="text-xs bg-gray-700 px-2 py-1 rounded">{formatMatchDate(match.matchDate)}</div>
                           </div>
                         </div>
-                        
-                        {/* Visitante */}
-                        <div className="flex items-center gap-3 flex-1 justify-end">
-                          <span className="font-bold text-lg text-right">{match.away}</span>
-                          <span className="text-4xl">{match.awayLogo}</span>
+
+                        {/* Equipos y resultado */}
+                        <div className="flex-1 flex items-center justify-between">
+                          {/* Local */}
+                          <div className="flex items-center gap-3 flex-1">
+                            {match.homeTeam.logo ? (
+                              <Image src={match.homeTeam.logo} alt={match.homeTeam.name} width={40} height={40} />
+                            ) : (
+                              <span className="text-4xl">🏠</span>
+                            )}
+                            <span className="font-bold text-lg">{match.homeTeam.shortName || match.homeTeam.name}</span>
+                          </div>
+
+                          {/* Marcador */}
+                          <div className="mx-6 bg-gray-800 rounded-lg px-6 py-3">
+                            <div className="text-3xl font-black">
+                              <span>{match.homeScore ?? 0}</span>
+                              <span className="text-gray-600 mx-2">-</span>
+                              <span>{match.awayScore ?? 0}</span>
+                            </div>
+                          </div>
+
+                          {/* Visitante */}
+                          <div className="flex items-center gap-3 flex-1 justify-end">
+                            <span className="font-bold text-lg text-right">{match.awayTeam.shortName || match.awayTeam.name}</span>
+                            {match.awayTeam.logo ? (
+                              <Image src={match.awayTeam.logo} alt={match.awayTeam.name} width={40} height={40} />
+                            ) : (
+                              <span className="text-4xl">✈️</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Flecha */}
+                        <div className="text-green-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-2xl">▶</span>
                         </div>
                       </div>
-
-                      {/* Flecha */}
-                      <div className="text-green-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-2xl">▶</span>
-                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))
+              )}
             </div>
           )}
 
           {/* Partidos en vivo (tab) */}
-          {activeTab === 'live' && (
+          {activeTab === 'live' && matchesData.live.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">⚽</div>
               <h3 className="text-2xl font-bold mb-2">No hay partidos en vivo ahora</h3>
-              <p className="text-gray-400">Los partidos en vivo aparecen en la sección superior</p>
+              <p className="text-gray-400">Los partidos en vivo aparecerán aquí cuando estén disponibles</p>
             </div>
           )}
 
