@@ -29,9 +29,19 @@ export const matchesApi = {
 
 // COMPETITIONS
 export const competitionsApi = {
-  getAll: () => fetch(`${API_URL}/competitions`).then(handleResponse),
+  getAll: (country?: string) => {
+    const params = country ? `?country=${country}` : '';
+    return fetch(`${API_URL}/competitions${params}`).then(handleResponse);
+  },
   getById: (id: number) => fetch(`${API_URL}/competitions/${id}`).then(handleResponse),
-  getStandings: (id: number) => fetch(`${API_URL}/competitions/${id}/standings`).then(handleResponse),
+  getStandings: (id: number, season?: string) => {
+    const params = season ? `?season=${season}` : '';
+    return fetch(`${API_URL}/competitions/${id}/standings${params}`).then(handleResponse);
+  },
+  getTopScorers: (id: number, season?: string) => {
+    const params = season ? `?season=${season}` : '';
+    return fetch(`${API_URL}/competitions/${id}/scorers${params}`).then(handleResponse);
+  },
 };
 
 // NEWS
