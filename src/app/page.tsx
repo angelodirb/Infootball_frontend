@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import HeroBanner from '@/components/HeroBanner';
 import FeaturedMatches from '@/components/FeaturedMatches';
 import FeaturedTransfers from '@/components/FeaturedTransfers'; 
+import MonthlyMatches from '@/components/MonthlyMatches';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function HomePage() {
         
         {/* Sección de Partidos Destacados */}
         <FeaturedMatches />
+        <MonthlyMatches /> 
       </main>
 
       {/* Footer opcional */}
